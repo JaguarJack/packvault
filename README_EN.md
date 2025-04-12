@@ -1,25 +1,25 @@
 [English](README_EN.md) | [中文](README.md)
 
 # PackVault
-PackVault 是一款 PHP 私有包管理面板，目前支持 Github 和 Gitee，理论上可以支持所有 git 协议平台。
+PackVault is a PHP private package management panel that currently supports Github and Gitee, and theoretically can support all git protocol platforms.
 
-## 功能
-- 支持平台 Github 和 Gitee
-- 管理仓库
-- 管理 license
-- 管理用户
-- 构建私有包任务
+## Features
+- Support for Github and Gitee platforms
+- Repository management
+- License management
+- User management
+- Private package build tasks
 
-## 配置
-### 基础配置
+## Configuration
+### Basic Configuration
 ```dotenv
-#私有包存储域名
+# Private package storage domain
 PACKVAULT_DOMAIN=
-#是否使用广播，默认不使用。如果使用广播，需要配置 reverb，项目自动安装了 reverb
+# Whether to use broadcasting, disabled by default. If using broadcast, Reverb needs to be configured (Reverb is automatically installed with the project)
 PACKVAULT_USE_BROADCAST=
 ```
 
-### Reverb 配置
+### Reverb Configuration
 ```dotenv
 REVERB_APP_ID=
 REVERB_APP_KEY=
@@ -30,27 +30,26 @@ REVERB_SCHEME=http
 REVERB_SERVER_PATH=
 ```
 
-### Git平台配置
+### Git Platform Configuration
 ```dotenv
-#Github配置
+# Github Configuration
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 GITHUB_CALLBACK=
 
-#Gitee配置
+# Gitee Configuration
 GITEE_CLIENT_ID=
 GITEE_CLIENT_SECERT=
 GITEE_CALLBACK=
 
-# Gitea 配置（暂时保留）
+# Gitea Configuration (Reserved)
 GITEA_CLIENT_ID==
 GITEA_CLIENT_SECERT=
-# Gitea域名，Gitea 一般都是 self host，所以这里配置平台域名就可以了
+# Gitea domain, since Gitea is usually self-hosted, just configure the platform domain here
 GITEA_INSTANCE_URI=
 ```
 
-
-## 如何使用
+## How to Use
 
 ```shell
 composer install
@@ -63,61 +62,61 @@ php artisan db:seed
 
 php artisan key:generate
 
-# 启动本地开发命令
+# Start local development command
 composer run dev
 
-# 启动本地队列，启动下面的命令
+# Start local queue with the following command
 php artisan queue:listen --timeout=3000
 
-# 如果配置好了 Reverb，本地配置启动下面的命令
+# If Reverb is configured, start with the following command
 php artisan reverb:start --host="127.0.0.1" --port="8001" --debug
-
 ```
 
-## 默认登录用户
-- 邮箱: admin@packvault.com
-- 密码: packvault
+## Default Login User
+- Email: admin@packvault.com
+- Password: packvault
 
-> 记得修改默认登录用户
+> Remember to change the default login user
 
-## 配置 Queue
-[使用 Supervisor 管理队列](https://laravel-docs.catchadmin.com/docs/11/digging-deeper/queues#supervisor-%E9%85%8D%E7%BD%AE)
+## Queue Configuration
+[Managing Queues with Supervisor](https://laravel.com/docs/queues#supervisor-configuration)
 
-## 配置 Reverb
-[生产环境配置 Reverb](https://laravel-docs.catchadmin.com/docs/11/packages/reverb#%E5%9C%A8%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%AD%E8%BF%90%E8%A1%8C-reverb)
+## Reverb Configuration
+[Configuring Reverb in Production](https://laravel.com/docs/reverb#running-reverb-in-production)
 
-## 配置定时任务
-由于 Gitee 的限制，需要定时重新获取 Gitee 的 Access token，所以需要重新获取
+## Configuring Scheduled Tasks
+Due to Gitee's limitations, you need to periodically refresh the Gitee Access token
 ```shell
 * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
 ```
-## 部署（nginx）
-```
+
+## Deployment (nginx)
+```nginx
 server
 {
     listen  443  ssl http2;
-    server_name 你的域名;
+    server_name your-domain;
     index index.html index.php index.htm default.php default.htm default.html;
-    root /你的项目/public;
+    root /your-project/public;
     
-    ssl_certificate     你的证书 pem;  # pem文件的路径
-    ssl_certificate_key  你的证书 key; # key文件的路径
+    ssl_certificate     your-certificate.pem;  # path to pem file
+    ssl_certificate_key your-certificate.key;  # path to key file
     
-    # ssl验证相关配置
-    ssl_session_timeout  5m;    #缓存有效期
+    # SSL validation configuration
+    ssl_session_timeout  5m;    # cache validity period
     ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4:!DH:!DHE;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
 
-    # 这里根据实际访问 URL 配置，这里只是一个示例
+    # Configure based on actual access URL, this is just an example
     location ~ ^/packvault {
-        # config('packvault.path') 目录，用来访问包的
-        alias /你的项目/storage/packvault;
+        # config('packvault.path') directory for package access
+        alias /your-project/storage/packvault;
         index index.html index.php index.htm default.php default.htm default.html;
         try_files $uri $uri/index.html =404;
     }
 
-    # reverb 配置
+    # Reverb configuration
     location ~ ^/apps? {
         proxy_http_version 1.1;
         proxy_set_header Host $http_host;
@@ -128,15 +127,15 @@ server
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
 
-        # 转发到 reverb 配置的端口
-        proxy_pass reverb:端口;
+        # Forward to reverb configured port
+        proxy_pass reverb:port;
     }
 
     location / {
        try_files $uri $uri/ /index.php?$query_string;
     }
 
-   # PHP 支持
+    # PHP support
     location ~ \.php$ {
         try_files $uri /index.php =404;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
@@ -146,7 +145,7 @@ server
         include fastcgi_params;
     }	
 
-    # 可选：防止访问敏感文件
+    # Optional: Prevent access to sensitive files
     location ~* \.(env|log|git) {
         deny all;
         return 404;
@@ -157,13 +156,13 @@ server
 }
 ```
 
-## composer 配置
+## Composer Configuration
 ```json
 {
     "repositories": [
         {
             "type": "composer",
-            "url": "你的域名/packvault", // 这个根据 nginx 配置实际修改
+            "url": "your-domain/packvault", // Modify this according to your nginx configuration
             "only-dist": true,
             "options": {
                 "ssl": {
@@ -174,3 +173,4 @@ server
         }
     ]
 }
+```
